@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, ChangeEvent } from 'react';
 import {
   Box,
   Button,
@@ -11,7 +11,7 @@ import {
   Alert,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridValueFormatterParams, GridRenderCellParams } from '@mui/x-data-grid';
 import { differenceInDays } from 'date-fns';
 import AddIcon from '@mui/icons-material/Add';
 
@@ -32,7 +32,7 @@ const columns: GridColDef[] = [
     field: 'expirationDate',
     headerName: 'Fecha de Vencimiento',
     width: 200,
-    valueFormatter: (params) => {
+    valueFormatter: (params: GridValueFormatterParams) => {
       return new Date(params.value).toLocaleDateString('es-ES');
     },
   },
@@ -41,7 +41,7 @@ const columns: GridColDef[] = [
     field: 'status',
     headerName: 'Estado',
     width: 150,
-    renderCell: (params) => {
+    renderCell: (params: GridRenderCellParams) => {
       const medication = params.row as Medication;
       const daysUntilExpiration = differenceInDays(
         new Date(medication.expirationDate),
@@ -63,6 +63,10 @@ const Inventory: React.FC = () => {
   const [medications, setMedications] = useState<Medication[]>([]);
   const [open, setOpen] = useState(false);
   const [newMedication, setNewMedication] = useState<Partial<Medication>>({});
+  const [paginationModel, setPaginationModel] = useState({
+    pageSize: 10,
+    page: 0,
+  });
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => {
@@ -101,8 +105,9 @@ const Inventory: React.FC = () => {
       <DataGrid
         rows={medications}
         columns={columns}
-        pageSize={10}
-        rowsPerPageOptions={[10]}
+        paginationModel={paginationModel}
+        onPaginationModelChange={setPaginationModel}
+        pageSizeOptions={[10]}
         autoHeight
       />
 
@@ -114,7 +119,7 @@ const Inventory: React.FC = () => {
               label="Nombre"
               fullWidth
               value={newMedication.name || ''}
-              onChange={(e) =>
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 setNewMedication({ ...newMedication, name: e.target.value })
               }
             />
@@ -124,7 +129,7 @@ const Inventory: React.FC = () => {
               multiline
               rows={2}
               value={newMedication.description || ''}
-              onChange={(e) =>
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 setNewMedication({ ...newMedication, description: e.target.value })
               }
             />
@@ -133,7 +138,7 @@ const Inventory: React.FC = () => {
               type="number"
               fullWidth
               value={newMedication.quantity || ''}
-              onChange={(e) =>
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 setNewMedication({ ...newMedication, quantity: e.target.value })
               }
             />
@@ -143,13 +148,13 @@ const Inventory: React.FC = () => {
               onChange={(date) =>
                 setNewMedication({ ...newMedication, expirationDate: date })
               }
-              renderInput={(params) => <TextField {...params} fullWidth />}
+              slotProps={{ textField: { fullWidth: true } }}
             />
             <TextField
               label="Donante"
               fullWidth
               value={newMedication.donor || ''}
-              onChange={(e) =>
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 setNewMedication({ ...newMedication, donor: e.target.value })
               }
             />
