@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Box,
@@ -12,14 +12,12 @@ import {
   ListItemText,
   Toolbar,
   Typography,
-  useTheme,
-  useMediaQuery,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
-  Inventory as InventoryIcon,
-  LocalHospital as MedicalCareIcon,
+  Medication as MedicationIcon,
+  MedicalServices as MedicalServicesIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -28,12 +26,9 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+export default function Layout({ children }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -41,17 +36,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-    { text: 'Inventario', icon: <InventoryIcon />, path: '/inventory' },
-    { text: 'Atención Médica', icon: <MedicalCareIcon />, path: '/medical-care' },
+    { text: 'Medicamentos', icon: <MedicationIcon />, path: '/medications' },
+    { text: 'Consultas', icon: <MedicalServicesIcon />, path: '/consultations' },
   ];
 
   const drawer = (
     <div>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div">
-          Pastoral de la Salud
-        </Typography>
-      </Toolbar>
+      <Toolbar />
       <List>
         {menuItems.map((item) => (
           <ListItem
@@ -59,9 +50,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             key={item.text}
             onClick={() => {
               navigate(item.path);
-              if (isMobile) setMobileOpen(false);
+              setMobileOpen(false);
             }}
-            selected={location.pathname === item.path}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.text} />
@@ -92,7 +82,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
-            {menuItems.find((item) => item.path === location.pathname)?.text || 'Pastoral de la Salud'}
+            Pastoral de la Salud
           </Typography>
         </Toolbar>
       </AppBar>
@@ -100,33 +90,36 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
       >
-        {isMobile ? (
-          <Drawer
-            variant="temporary"
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            ModalProps={{
-              keepMounted: true, // Better open performance on mobile.
-            }}
-            sx={{
-              display: { xs: 'block', sm: 'none' },
-              '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-            }}
-          >
-            {drawer}
-          </Drawer>
-        ) : (
-          <Drawer
-            variant="permanent"
-            sx={{
-              display: { xs: 'none', sm: 'block' },
-              '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-            }}
-            open
-          >
-            {drawer}
-          </Drawer>
-        )}
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{
+            keepMounted: true, // Better open performance on mobile.
+          }}
+          sx={{
+            display: { xs: 'block', sm: 'none' },
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: drawerWidth,
+            },
+          }}
+        >
+          {drawer}
+        </Drawer>
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: 'none', sm: 'block' },
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: drawerWidth,
+            },
+          }}
+          open
+        >
+          {drawer}
+        </Drawer>
       </Box>
       <Box
         component="main"
@@ -134,13 +127,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           flexGrow: 1,
           p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          mt: '64px',
         }}
       >
+        <Toolbar />
         {children}
       </Box>
     </Box>
   );
-};
-
-export default Layout; 
+} 
