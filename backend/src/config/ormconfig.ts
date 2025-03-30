@@ -1,9 +1,9 @@
-import { ConnectionOptions } from 'typeorm';
+import { DataSourceOptions } from 'typeorm';
 import { Medication } from '../entities/Medication';
 import { Consultation } from '../entities/Consultation';
 import { PrescriptionItem } from '../entities/PrescriptionItem';
 
-const config: ConnectionOptions = {
+const config: DataSourceOptions = {
   type: 'postgres',
   host: process.env.DB_HOST || 'db',
   port: Number(process.env.DB_PORT) || 5432,
@@ -13,6 +13,7 @@ const config: ConnectionOptions = {
   entities: [Medication, Consultation, PrescriptionItem],
   synchronize: process.env.NODE_ENV !== 'production',
   logging: process.env.NODE_ENV !== 'production',
+  ssl: false,
 };
 
 export default config; 

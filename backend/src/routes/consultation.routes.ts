@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { getRepository } from 'typeorm';
 import { Consultation } from '../entities/Consultation';
 import { PrescriptionItem } from '../entities/PrescriptionItem';
@@ -7,32 +7,26 @@ import { Medication } from '../entities/Medication';
 const router = Router();
 
 // Get all consultations
-router.get('/', async (req, res) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
     const consultationRepository = getRepository(Consultation);
-    const consultations = await consultationRepository.find({
-      relations: ['prescription', 'prescription.medication'],
-    });
-    res.json(consultations);
+    const consultations = await consultationRepository.find();
+    return res.json(consultations);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching consultations' });
+    return res.status(500).json({ message: 'Error fetching consultations' });
   }
 });
 
 // Create new consultation
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const consultationRepository = getRepository(Consultation);
     const prescriptionItemRepository = getRepository(PrescriptionItem);
     const medicationRepository = getRepository(Medication);
 
     // Create consultation
-    const consultation = consultationRepository.create({
-      patientName: req.body.patientName,
-      date: req.body.date,
-      diagnosis: req.body.diagnosis,
-    });
-    const savedConsultation = await consultationRepository.save(consultation);
+    const consultation = consultationRepository.create(req.body);
+    const result = await consultationRepository.save(consultation);
 
     // Create prescription items and update medication quantities
     for (const prescriptionItem of req.body.prescription) {
@@ -51,7 +45,7 @@ router.post('/', async (req, res) => {
 
       // Create prescription item
       const newPrescriptionItem = prescriptionItemRepository.create({
-        consultation: savedConsultation,
+        consultation: result,
         medication: medication,
         dosage: prescriptionItem.dosage,
         quantity: prescriptionItem.quantity,
@@ -64,46 +58,69 @@ router.post('/', async (req, res) => {
       await medicationRepository.save(medication);
     }
 
-    const result = await consultationRepository.findOne(savedConsultation.id, {
+    const updatedConsultation = await consultationRepository.findOne(result.id, {
       relations: ['prescription', 'prescription.medication'],
     });
-    res.status(201).json(result);
+    return res.status(201).json(updatedConsultation);
   } catch (error) {
-    res.status(500).json({ message: 'Error creating consultation' });
+    return res.status(500).json({ message: 'Error creating consultation' });
   }
 });
 
 // Get consultation by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: Request, res: Response) => {
   try {
     const consultationRepository = getRepository(Consultation);
-    const consultation = await consultationRepository.findOne(req.params.id, {
-      relations: ['prescription', 'prescription.medication'],
+    const consultation = await consultationRepository.findOne({
+      where: { id: Number(req.params.id) }
     });
+    
     if (!consultation) {
       return res.status(404).json({ message: 'Consultation not found' });
     }
-    res.json(consultation);
+    
+    return res.json(consultation);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching consultation' });
+    return res.status(500).json({ message: 'Error fetching consultation' });
+  }
+});
+
+// Update consultation
+router.put('/:id', async (req: Request, res: Response) => {
+  try {
+    const consultationRepository = getRepository(Consultation);
+    const consultation = await consultationRepository.findOne({
+      where: { id: Number(req.params.id) }
+    });
+    
+    if (!consultation) {
+      return res.status(404).json({ message: 'Consultation not found' });
+    }
+
+    consultationRepository.merge(consultation, req.body);
+    const result = await consultationRepository.save(consultation);
+    return res.json(result);
+  } catch (error) {
+    return res.status(500).json({ message: 'Error updating consultation' });
   }
 });
 
 // Delete consultation
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const consultationRepository = getRepository(Consultation);
-    const consultation = await consultationRepository.findOne(req.params.id, {
-      relations: ['prescription'],
+    const consultation = await consultationRepository.findOne({
+      where: { id: Number(req.params.id) }
     });
+    
     if (!consultation) {
       return res.status(404).json({ message: 'Consultation not found' });
     }
 
     await consultationRepository.remove(consultation);
-    res.status(204).send();
+    return res.status(204).send();
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting consultation' });
+    return res.status(500).json({ message: 'Error deleting consultation' });
   }
 });
 

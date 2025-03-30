@@ -1,10 +1,11 @@
 import 'reflect-metadata';
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { createConnection } from 'typeorm';
+import { DataSource } from 'typeorm';
 import dotenv from 'dotenv';
 import medicationRoutes from './routes/medication.routes';
 import consultationRoutes from './routes/consultation.routes';
+import ormConfig from './config/ormconfig';
 
 dotenv.config();
 
@@ -20,18 +21,20 @@ app.use('/api/medications', medicationRoutes);
 app.use('/api/consultations', consultationRoutes);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok' });
 });
 
 // Database connection
-createConnection()
+const AppDataSource = new DataSource(ormConfig);
+
+AppDataSource.initialize()
   .then(() => {
     console.log('Database connected successfully');
     app.listen(port, () => {
       console.log(`Server is running on port ${port}`);
     });
   })
-  .catch((error) => {
+  .catch((error: Error) => {
     console.error('Error connecting to the database:', error);
   }); 

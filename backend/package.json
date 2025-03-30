@@ -2,7 +2,7 @@
   "name": "pastoral-salud-backend",
   "version": "1.0.0",
   "description": "Backend for Pastoral de la Salud application",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",

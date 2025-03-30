@@ -16,8 +16,8 @@ fi
 
 # Detener contenedores existentes si los hay
 echo "Deteniendo contenedores existentes..."
-docker-compose down
+docker compose down
 
 # Construir e iniciar los contenedores
 echo "Construyendo e iniciando la aplicación..."
-docker-compose up --build 
+docker compose up --build 
