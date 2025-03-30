@@ -58,18 +58,25 @@ router.post('/', async (req: Request, res: Response) => {
           return res.status(404).json({ message: `Medication with ID ${prescriptionItem.medicationId} not found` });
         }
 
+        if (medication.quantity < prescriptionItem.quantity) {
+          return res.status(400).json({
+            message: `Insufficient quantity for medication ${medication.name}`,
+          });
+        }
+
         // Create prescription item
         const newPrescriptionItem = prescriptionItemRepository.create({
           consultation: savedConsultation,
           medication: medication,
           dosage: prescriptionItem.dosage,
+          quantity: prescriptionItem.quantity,
           instructions: prescriptionItem.instructions
         });
 
         await prescriptionItemRepository.save(newPrescriptionItem);
 
         // Update medication quantity
-        medication.quantity -= prescriptionItem.dosage;
+        medication.quantity -= prescriptionItem.quantity;
         await medicationRepository.save(medication);
       }
     }
