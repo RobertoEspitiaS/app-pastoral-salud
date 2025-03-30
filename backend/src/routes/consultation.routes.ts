@@ -10,7 +10,9 @@ const router = Router();
 router.get('/', async (_req: Request, res: Response) => {
   try {
     const consultationRepository = getRepository(Consultation);
-    const consultations = await consultationRepository.find();
+    const consultations = await consultationRepository.find({
+      relations: ['prescription', 'prescription.medication']
+    });
     return res.json(consultations);
   } catch (error) {
     return res.status(500).json({ message: 'Error fetching consultations' });
@@ -22,7 +24,8 @@ router.get('/:id', async (req: Request, res: Response) => {
   try {
     const consultationRepository = getRepository(Consultation);
     const consultation = await consultationRepository.findOne({
-      where: { id: Number(req.params.id) }
+      where: { id: Number(req.params.id) },
+      relations: ['prescription', 'prescription.medication']
     });
     
     if (!consultation) {
@@ -43,7 +46,11 @@ router.post('/', async (req: Request, res: Response) => {
     const medicationRepository = getRepository(Medication);
 
     // Create consultation
-    const consultation = consultationRepository.create(req.body);
+    const consultation = consultationRepository.create({
+      patientName: req.body.patientName,
+      date: req.body.date,
+      diagnosis: req.body.diagnosis
+    });
     const savedConsultation = await consultationRepository.save(consultation);
 
     // Create prescription items and update medication quantities
@@ -105,7 +112,11 @@ router.put('/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Consultation not found' });
     }
 
-    consultationRepository.merge(consultation, req.body);
+    consultationRepository.merge(consultation, {
+      patientName: req.body.patientName,
+      date: req.body.date,
+      diagnosis: req.body.diagnosis
+    });
     const result = await consultationRepository.save(consultation);
     return res.json(result);
   } catch (error) {
