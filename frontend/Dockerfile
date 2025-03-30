@@ -2,12 +2,16 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# Establecer variable de entorno para OpenSSL
+ENV NODE_OPTIONS=--openssl-legacy-provider
+
 # Copiar todos los archivos de configuración
 COPY package*.json ./
 COPY tsconfig.json ./
 
-# Instalar dependencias
-RUN npm install
+# Instalar dependencias y TypeScript compatible
+RUN npm install && \
+    npm install typescript@3.4.5 --save-dev
 
 # Copiar el código fuente y archivos públicos
 COPY src ./src
